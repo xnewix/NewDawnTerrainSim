@@ -375,12 +375,13 @@ public:
 		double max = 0;
 		double min = 0;
 
-		for (int i = 0; i < 6; i++) {
+		for (int i = 0; i < 8; i++) {
 			
 			noisecontainer.push_back(NoiseContainer(frequancy, amplitude, length, 0));
 			noisecontainer.push_back(NoiseContainer(frequancy, amplitude, length, 1));
 			noisecontainer.push_back(NoiseContainer(frequancy, amplitude, length, 2));
-			noisecontainer.push_back(NoiseContainer(frequancy, amplitude, length, 3));			
+			noisecontainer.push_back(NoiseContainer(frequancy, amplitude, length, 3));		
+
 
 			for (int i_point = 0; i_point < length * length; i_point++) {
 
@@ -406,6 +407,59 @@ public:
 		}		
 
 
+		/*for (int i = 0; i < sumofnoise[i]; i++) {
+
+			if (sumofnoise[i] > max) { max = sumofnoise[i]; }
+			if (sumofnoise[i] < min) { min = sumofnoise[i]; }
+
+		}
+		for (int i = 0; i < sumofnoise[i]; i++) {
+
+			sumofnoise[i] = (sumofnoise[i] - min) / (max - min);
+
+		}*/
+
+		for (int h = 0; h < length; h++) {
+
+			for (int w = 0; w < length; w++) {
+
+				addPoint3d(w, 0.0, h);
+
+			}
+
+		}				
+		
+		
+		for (int p = 0; p < 8; p++) {
+			int hc = 1;
+			for (int i = 1; i < sumofnoise.size() - 1; i++) {
+				double mu = (1 - cos(0.5 * PI)) / 2.0;
+
+				double v1 = sumofnoise[i] * (1 - mu) + sumofnoise[i + 1] * mu;
+				double v2 = sumofnoise[i - 1] * (1 - mu) + sumofnoise[i] * mu;
+
+				double v3 = v2 * (1 - mu) + v1 * mu;
+				sumofnoise[i] = v3;
+
+				if (i == (length * hc) - 2) {
+					i = i + 2;
+					hc++;
+				}
+			}
+
+			for (int i = length; i < sumofnoise.size() - length; i++) {
+				double mu = (1 - cos(0.5 * PI)) / 2.0;
+
+				double v1 = (sumofnoise[i] * (1 - mu) + sumofnoise[i + length] * mu);
+				double v2 = (sumofnoise[i - length] * (1 - mu) + sumofnoise[i] * mu);
+
+				double v3 = v2 * (1 - mu) + v1 * mu;
+				sumofnoise[i] = v3;
+
+			}
+
+		}
+		
 		for (int i = 0; i < sumofnoise[i]; i++) {
 
 			if (sumofnoise[i] > max) { max = sumofnoise[i]; }
@@ -418,59 +472,11 @@ public:
 
 		}
 
-		for (int h = 0; h < length; h++) {
-
-			for (int w = 0; w < length; w++) {
-
-				addPoint3d(w, 0.0, h);
-
-			}
-
-		}
-
-		//for (int i = 0; i < length * length; i++) {			
-
-		//	point3d[i] = Point3d(point3d[i].getx(), 255 * sumofnoise[i], point3d[i].getz());
-
-		//	// point3d[i] = Point3d(point3d[i].getx(), pow(point3d[i].gety(), 1.0), point3d[i].getz());
-
-		//}
-		
-		/*for (int p = 0; p < 4; p++) {
-			int hc = 1;
-			for (int i = 1; i < point3d.size() - 1; i++) {
-				double mu = (1 - cos(0.5 * PI)) / 2.0;
-
-				double v1 = point3d[i].gety() * (1 - mu) + point3d[i + 1].gety() * mu;
-				double v2 = point3d[i - 1].gety() * (1 - mu) + point3d[i].gety() * mu;
-
-				double v3 = v2 * (1 - mu) + v1 * mu;
-				point3d[i] = Point3d(point3d[i].getx(), v3, point3d[i].getz());
-
-				if (i == (length * hc) - 2) {
-					i = i + 2;
-					hc++;
-				}
-			}
-
-			for (int i = length; i < point3d.size() - length; i++) {
-				double mu = (1 - cos(0.5 * PI)) / 2.0;
-
-				double v1 = (point3d[i].gety() * (1 - mu) + point3d[i + length].gety() * mu);
-				double v2 = (point3d[i - length].gety() * (1 - mu) + point3d[i].gety() * mu);
-
-				double v3 = v2 * (1 - mu) + v1 * mu;
-				point3d[i] = Point3d(point3d[i].getx(), v3, point3d[i].getz());
-
-			}
-
-		}*/	
-
 		for (int i = 0; i < length * length; i++) {			
 
 			point3d[i] = Point3d(point3d[i].getx(), sumofnoise[i], point3d[i].getz());
 
-			point3d[i] = Point3d(point3d[i].getx(), 100 * pow(point3d[i].gety(), 2.0), point3d[i].getz());
+			point3d[i] = Point3d(point3d[i].getx(), 50*pow(point3d[i].gety(), 2.0), point3d[i].getz());
 
 			//point3d[i] = Point3d(point3d[i].getx(), 10.0 * sumofnoise[i], point3d[i].getz());			
 

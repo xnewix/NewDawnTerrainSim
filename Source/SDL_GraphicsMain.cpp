@@ -63,7 +63,7 @@ Settings worldsettings;
 SpaceCamera spacecamera(30.0,90.0,30.0,-15.0,-135.0);
 //30,90,30
 
-CGrid cgrid1(257); 
+CGrid cgrid1(513); 
 
 int gridmap1;
 
