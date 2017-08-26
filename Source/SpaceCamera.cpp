@@ -52,7 +52,7 @@ void SpaceCamera::Control(SDL_Window *window,double movevel,double mousevel,bool
 		
 		const Uint8 *state = SDL_GetKeyboardState(NULL);
 
-		if(state[SDL_SCANCODE_Q]) {
+		if(state[SDL_SCANCODE_W]) {
 			if(camPitch!=90 && camPitch!=-90) {	
 				moveCamera(movevel,0.0);	
 				moveCameraUp(movevel,0.0);	  

@@ -206,15 +206,16 @@ public:
 		xvalues.push_back(initialvalue_x);
 		yvalues.push_back(initialvalue_y);
 
+		double variance = 0.05; // 0.025
 		
 		switch (rangevalues) {
 
 			case 0:
 				for (int i = 1; i < length; i++) {
-					double newvalue_x = xvalues[i - 1] + rn.GenerateUniformRealDistribution(0.0, 0.025);					
+					double newvalue_x = xvalues[i - 1] + rn.GenerateUniformRealDistribution(0.0, variance);
 					xvalues.push_back(newvalue_x);
 
-					double newvalue_y = yvalues[i - 1] + rn.GenerateUniformRealDistribution(0.0, 0.025);			
+					double newvalue_y = yvalues[i - 1] + rn.GenerateUniformRealDistribution(0.0, variance);
 					yvalues.push_back(newvalue_y);
 				}
 				break;
@@ -222,10 +223,10 @@ public:
 			case 1:
 				for (int i = 1; i < length; i++) {
 					
-					double newvalue_x = xvalues[i - 1] + rn.GenerateUniformRealDistribution(-0.025, 0.0);
+					double newvalue_x = xvalues[i - 1] + rn.GenerateUniformRealDistribution(-variance, 0.0);
 					xvalues.push_back(newvalue_x);
 					
-					double newvalue_y = yvalues[i - 1] + rn.GenerateUniformRealDistribution(0.0, 0.025);
+					double newvalue_y = yvalues[i - 1] + rn.GenerateUniformRealDistribution(0.0, variance);
 					yvalues.push_back(newvalue_y);
 				}
 				break;
@@ -233,10 +234,10 @@ public:
 			case 2:
 				for (int i = 1; i < length; i++) {
 					
-					double newvalue_x = xvalues[i - 1] + rn.GenerateUniformRealDistribution(-0.025, 0.0);
+					double newvalue_x = xvalues[i - 1] + rn.GenerateUniformRealDistribution(-variance, 0.0);
 					xvalues.push_back(newvalue_x);
 										
-					double newvalue_y = yvalues[i - 1] + rn.GenerateUniformRealDistribution(-0.025, 0.0);
+					double newvalue_y = yvalues[i - 1] + rn.GenerateUniformRealDistribution(-variance, 0.0);
 					yvalues.push_back(newvalue_y);
 				}
 				break;
@@ -244,10 +245,10 @@ public:
 			case 3:
 				for (int i = 1; i < length; i++) {
 					
-					double newvalue_x = xvalues[i - 1] + rn.GenerateUniformRealDistribution(0.0, 0.025);
+					double newvalue_x = xvalues[i - 1] + rn.GenerateUniformRealDistribution(0.0, variance);
 					xvalues.push_back(newvalue_x);
 										
-					double newvalue_y = yvalues[i - 1] + rn.GenerateUniformRealDistribution(-0.025, 0.0);
+					double newvalue_y = yvalues[i - 1] + rn.GenerateUniformRealDistribution(-variance, 0.0);
 					yvalues.push_back(newvalue_y);
 				}
 				break;
@@ -262,7 +263,7 @@ public:
 
 			for (int w = 0; w < xvalues.size(); w++) {
 
-				double newvalue_z = (getYValue(h) * getXValue(w)) / (2.0 * PI);
+				double newvalue_z = (getYValue(h) * getXValue(w)) / (2.0 * PI);				
 
 				zvalues.push_back(newvalue_z);
 
@@ -273,7 +274,7 @@ public:
 		double offset = rn.GenerateUniformIntDistribution(0, 6);
 
 		for (int i = 0; i < zvalues.size(); i++) {
-
+			
 			double  noise = amplitude *  sin((getZValue(i) * frequancy) + offset);
 			
 			points.push_back(noise);
@@ -314,6 +315,11 @@ class CGrid {
 private:
 	int length;
 
+	int wc;
+	int heightcounter;
+
+	
+
 	RandomNumbers rn;
 	double frequancy;
 	double amplitude;
@@ -322,6 +328,8 @@ private:
 public:
 	CGrid(int nlength) : length(nlength) {
 
+		wc = 0;
+		heightcounter = 0;
 		frequancy = 1.0;
 		amplitude = 1.0;		
 
@@ -335,7 +343,8 @@ public:
 	std::vector<Triangle3d> triangle3d;	
 
 	std::vector<double> waterheight; // should probably be part of a class that combines all data about a spot on the map	
-	
+	std::vector<double> sedimentheight; 
+
 	std::vector<NoiseContainer> noisecontainer;
 	std::vector<double> sumofnoise;
 
@@ -345,6 +354,7 @@ public:
 	std::vector<double> noise;
 
 	
+
 	void addPoint3d(double nx, double ny, double nz) { point3d.push_back(Point3d(nx, ny, nz)); }
 	void addTriangle3d(int nv1, int nv2, int nv3)    { triangle3d.push_back(Triangle3d(nv1, nv2, nv3)); }
 
@@ -352,17 +362,18 @@ public:
 		
 		for (int i = 0; i < length * length; i++) {
 			sumofnoise.push_back(0.0);
-			//waterheight.push_back(0.002);
+			//waterheight.push_back(9.600); // 0.004
+			//sedimentheight.push_back(0.0);
 		}
 
 		double max = 0;
 		double min = 0;
 
-		for (int i = 0; i < 6; i++) {			
+		for (int i = 0; i < 4; i++) {			
 			noisecontainer.push_back(NoiseContainer(frequancy, amplitude, length, 0));
 			noisecontainer.push_back(NoiseContainer(frequancy, amplitude, length, 1));
-			noisecontainer.push_back(NoiseContainer(frequancy, amplitude, length, 1));
-			noisecontainer.push_back(NoiseContainer(frequancy, amplitude, length, 2));				
+			noisecontainer.push_back(NoiseContainer(frequancy, amplitude, length, 2));
+			noisecontainer.push_back(NoiseContainer(frequancy, amplitude, length, 3));					
 
 			for (int i_point = 0; i_point < length * length; i_point++) {
 
@@ -386,8 +397,10 @@ public:
 			}
 		}				
 		
+		
+
 		// cosine interpolation
-		for (int p = 0; p < 2; p++) {
+		for (int p = 0; p < 6; p++) {
 			int hc = 1;
 			for (int i = 1; i < sumofnoise.size() - 1; i++) {
 				double mu = (1 - cos(0.5 * PI)) / 2.0;
@@ -425,17 +438,23 @@ public:
 		// assign points and scale the mesh
 		for (int i = 0; i < length * length; i++) {			
 			point3d[i] = Point3d(point3d[i].getx(), sumofnoise[i], point3d[i].getz());
-			point3d[i] = Point3d(point3d[i].getx(), 50 *pow(point3d[i].gety(), 2.0), point3d[i].getz());				
-			//waterheight[i] = waterheight[i] * 50; //set to the same scale as the terrain
+			point3d[i] = Point3d(point3d[i].getx(), 50 * pow(point3d[i].gety(), 2.0), point3d[i].getz());
+			//waterheight[i] = waterheight[i]; //set to the same scale as the terrain
 		}
 
-		refinetriangles(); 		
-		vertexnormals();	
-
-		/*for (int i = 0; i < 1; i++) {
-			calculatewatermovement();
+		/*for (int i = 0; i < 4000; i++) {
+			calculatewatermovement();			
 		}*/
 
+		/*for (int i = 0; i < waterheight.size(); i++) {
+			waterheight[i] = 0.00125;			
+		}*/
+		//calculatewatermovement();
+		waterheight.clear();
+		sedimentheight.clear();
+
+		refinetriangles(); 		
+		vertexnormals();
 	}
 
 	void refinetriangles() {
@@ -476,279 +495,339 @@ public:
 		}
 	}
 
-	void transportwater(double &na, double &nb, double transferrate) {
+	void transportwater(double &na, double &nb, double transferrate, double erosionrate, int pos, int wc, int wc2) {
 
 		if (na >= transferrate) {
+			if (point3d[wc].gety() - erosionrate >= point3d[wc2].gety()) {
+				point3d[wc] = Point3d(point3d[wc].getx(), point3d[wc].gety() - erosionrate, point3d[wc].getz());
+				sedimentheight[wc2] = sedimentheight[wc2] + erosionrate;
+			}
+			else {
+				// transfer half the differance
+				point3d[wc] = Point3d(point3d[wc].getx(), point3d[wc].gety() - (point3d[wc].gety() - point3d[wc2].gety()), point3d[wc].getz());
+				sedimentheight[wc2] = sedimentheight[wc2] + (point3d[wc].gety() - point3d[wc2].gety());
+			}
 			nb = nb + transferrate;
 			na = na - transferrate;			
 		}
 		else if (na < transferrate) {
+
+			if (na <= 0) { na = 0; }
+			if (na > 0.0) {
+				// find percentage of errosian rate
+				double adjustederrosionrate = (na / transferrate) * erosionrate;
+
+				if (point3d[wc].gety() - adjustederrosionrate >= point3d[wc2].gety()) {
+					point3d[wc] = Point3d(point3d[wc].getx(), point3d[wc].gety() - adjustederrosionrate, point3d[wc].getz());
+					sedimentheight[wc2] = sedimentheight[wc2] + adjustederrosionrate;
+				}
+				else {
+					point3d[wc] = Point3d(point3d[wc].getx(), point3d[wc].gety() - (point3d[wc].gety() - point3d[wc2].gety()), point3d[wc].getz());
+					sedimentheight[wc2] = sedimentheight[wc2] + (point3d[wc].gety() - point3d[wc2].gety());
+				}
+			}
 			nb = nb + na;
-			na = 0;			
-		}
+			na = 0.0;			
+		}			
 
 	}
 	void calculatewatermovement() {
-		int gw = length - 1;
-		int a = 0;
+		// wc relpaced a, which was a local in var
+		// h used to be another loop like w
+
+		int gw = length - 1;		
+		int h = heightcounter;
 
 		std::vector<double> combinedheight;
+
 		double max = 0;
 		int pos = -1;
 
-		double erosianvalue = 0.0001 * 50;
-		double watertransferrate = 0.0002 * 50;
+		double erosionrate       = 0.1250;    // 0.00125;
+		double sedimentratio     = 0.0001;       // 0.05
+		double watertransferrate = 0.001250;      // 0.25
+		double evapourationrate  = 0.000312500;  // 0.0031250;
 
-		for (int h = 0; h < length; h++) {				
+		for (int w = 0; w < length; w++) {
 
-			for (int w = 0; w < length; w++) {
+			if (waterheight[wc] == 0) {
+				// do nothing 						
+			}
+			else {
+				if ((h == 0) && (w == 0)) {
 
-				if (waterheight[a] == 0) {
-					// do nothing 						
+					combinedheight.push_back((point3d[wc].gety() + waterheight[wc]) -
+						(point3d[wc + length].gety() + waterheight[wc + length]));
+
+					combinedheight.push_back((point3d[wc].gety() + waterheight[wc]) -
+						(point3d[wc + 1].gety() + waterheight[wc + 1]));
+
+					findlowestneighbour(combinedheight, max, pos);
+					// if pos == - 1 then no erosion takes place
+					// else home tile gets eroded
+
+					// errode a as sediment and transfer it in water to lowestneighbour
+					if (pos == 0) {
+						transportwater(waterheight[wc], waterheight[wc + length], watertransferrate, erosionrate, pos, wc, wc + length);
+					}
+					else if (pos == 1) {
+						transportwater(waterheight[wc], waterheight[wc + 1], watertransferrate, erosionrate, pos, wc, wc + 1);
+					}
+
+					// Deposit sediment
+					if (sedimentheight[wc] > (waterheight[wc] * sedimentratio)) {
+						double nonsoluablesediment = sedimentheight[wc] - (waterheight[wc] * sedimentratio);
+						point3d[wc] = Point3d(point3d[wc].getx(), point3d[wc].gety() + nonsoluablesediment, point3d[wc].getz());
+					}
+
 				}
-				else {
-					if ((h == 0) && (w == 0)) {
 
-						combinedheight.push_back((point3d[a].gety() + waterheight[a]) -
-							(point3d[a + length].gety() + waterheight[a + length]));
+				else if ((h == 0) && (w < gw)) {
 
-						combinedheight.push_back((point3d[a].gety() + waterheight[a]) -
-							(point3d[a + 1].gety() + waterheight[a + 1]));
+					combinedheight.push_back((point3d[wc].gety() + waterheight[wc]) -
+						(point3d[wc + length].gety() + waterheight[wc + length]));
 
-						findlowestneighbour(combinedheight, max, pos);
+					combinedheight.push_back((point3d[wc].gety() + waterheight[wc]) -
+						(point3d[wc + 1].gety() + waterheight[wc + 1]));
 
-						// errode a as sediment and transfer it in water to lowestneighbour
-						if (pos == 0) {
-							//point3d[a] = Point3d(point3d[a].getx(), point3d[a].gety() - erosianvalue, point3d[a].getz());
-							transportwater(waterheight[a], waterheight[a + length], watertransferrate);
-							//counter++;
-						}
-						else if (pos == 1) {
-							transportwater(waterheight[a], waterheight[a + 1], watertransferrate);
-							//counter++;
-						}
+					combinedheight.push_back((point3d[wc].gety() + waterheight[wc]) -
+						(point3d[wc - 1].gety() + waterheight[wc - 1]));
 
+					findlowestneighbour(combinedheight, max, pos);
+
+					if (pos == 0) {
+						transportwater(waterheight[wc], waterheight[wc + length], watertransferrate, erosionrate, pos, wc, wc + length);
+					}
+					else if (pos == 1) {
+						transportwater(waterheight[wc], waterheight[wc + 1], watertransferrate, erosionrate, pos, wc, wc + 1);
+					}
+					else if (pos == 2) {
+						transportwater(waterheight[wc], waterheight[wc - 1], watertransferrate, erosionrate, pos, wc, wc - 1);
 					}
 
-					else if ((h == 0) && (w < gw)) {
-
-						combinedheight.push_back((point3d[a].gety() + waterheight[a]) -
-							(point3d[a + length].gety() + waterheight[a + length]));
-
-						combinedheight.push_back((point3d[a].gety() + waterheight[a]) -
-							(point3d[a + 1].gety() + waterheight[a + 1]));
-
-						combinedheight.push_back((point3d[a].gety() + waterheight[a]) -
-							(point3d[a - 1].gety() + waterheight[a - 1]));
-
-						findlowestneighbour(combinedheight, max, pos);
-
-						if (pos == 0) {
-							transportwater(waterheight[a], waterheight[a + length], watertransferrate);
-							//counter++;
-						}
-						else if (pos == 1) {
-							transportwater(waterheight[a], waterheight[a + 1], watertransferrate);
-							//counter++;
-						}
-						else if (pos == 2) {
-							transportwater(waterheight[a], waterheight[a - 1], watertransferrate);
-							//counter++;
-						}
-
-					}
-					else if ((h == 0) && (w = gw)) {
-
-						combinedheight.push_back((point3d[a].gety() + waterheight[a]) -
-							(point3d[a + length].gety() + waterheight[a + length]));
-
-						combinedheight.push_back((point3d[a].gety() + waterheight[a]) -
-							(point3d[a - 1].gety() + waterheight[a - 1]));
-
-						findlowestneighbour(combinedheight, max, pos);
-
-						if (pos == 0) {
-							transportwater(waterheight[a], waterheight[a + length], watertransferrate);
-							//counter++;
-						}
-						else if (pos == 1) {
-							transportwater(waterheight[a], waterheight[a - 1], watertransferrate);
-							//counter++;
-						}
-
-					}
-					else if ((h > 0) && (h < gw) && (w == 0)) {
-
-						combinedheight.push_back((point3d[a].gety() + waterheight[a]) -
-							(point3d[a + length].gety() + waterheight[a + length]));
-
-						combinedheight.push_back((point3d[a].gety() + waterheight[a]) -
-							(point3d[a + 1].gety() + waterheight[a + 1]));
-
-						combinedheight.push_back((point3d[a].gety() + waterheight[a]) -
-							(point3d[a - length].gety() + waterheight[a - length]));
-
-						findlowestneighbour(combinedheight, max, pos);
-
-						if (pos == 0) {
-							transportwater(waterheight[a], waterheight[a + length], watertransferrate);
-							//counter++;
-						}
-						else if (pos == 1) {
-							transportwater(waterheight[a], waterheight[a + 1], watertransferrate);
-							//counter++;
-						}
-						else if (pos == 2) {
-							transportwater(waterheight[a], waterheight[a - length], watertransferrate);
-							//counter++;
-						}
-					}
-					else if ((h > 0) && (h < gw) && (w < gw)) {
-
-						combinedheight.push_back((point3d[a].gety() + waterheight[a]) -
-							(point3d[a + length].gety() + waterheight[a + length]));
-
-						combinedheight.push_back((point3d[a].gety() + waterheight[a]) -
-							(point3d[a + 1].gety() + waterheight[a + 1]));
-
-						combinedheight.push_back((point3d[a].gety() + waterheight[a]) -
-							(point3d[a - length].gety() + waterheight[a - length]));
-
-						combinedheight.push_back((point3d[a].gety() + waterheight[a]) -
-							(point3d[a - 1].gety() + waterheight[a - 1]));
-
-						findlowestneighbour(combinedheight, max, pos);
-
-						if (pos == 0) {
-							transportwater(waterheight[a], waterheight[a + length], watertransferrate);
-							//counter++;
-						}
-						else if (pos == 1) {
-							transportwater(waterheight[a], waterheight[a + 1], watertransferrate);
-							//counter++;
-						}
-						else if (pos == 2) {
-							transportwater(waterheight[a], waterheight[a - length], watertransferrate);
-							//counter++;
-						}
-						else if (pos == 3) {
-							transportwater(waterheight[a], waterheight[a - 1], watertransferrate);
-							//counter++;
-						}
-
-					}
-					else if ((h > 0) && (h < gw) && (w == gw)) {
-
-						combinedheight.push_back((point3d[a].gety() + waterheight[a]) -
-							(point3d[a + length].gety() + waterheight[a + length]));
-
-						combinedheight.push_back((point3d[a].gety() + waterheight[a]) -
-							(point3d[a - length].gety() + waterheight[a - length]));
-
-						combinedheight.push_back((point3d[a].gety() + waterheight[a]) -
-							(point3d[a - 1].gety() + waterheight[a - 1]));
-
-						findlowestneighbour(combinedheight, max, pos);
-
-						if (pos == 0) {
-							transportwater(waterheight[a], waterheight[a + length], watertransferrate);
-							//counter++;
-						}
-						else if (pos == 1) {
-							transportwater(waterheight[a], waterheight[a - length], watertransferrate);
-							//counter++;
-						}
-						else if (pos == 2) {
-							transportwater(waterheight[a], waterheight[a - 1], watertransferrate);
-							//counter++;
-						}
-
-					}
-					else if ((h == gw) && (w == 0)) {
-
-						combinedheight.push_back((point3d[a].gety() + waterheight[a]) -
-							(point3d[a + 1].gety() + waterheight[a + 1]));
-
-						combinedheight.push_back((point3d[a].gety() + waterheight[a]) -
-							(point3d[a - length].gety() + waterheight[a - length]));
-
-						findlowestneighbour(combinedheight, max, pos);
-
-						if (pos == 0) {
-							transportwater(waterheight[a], waterheight[a + 1], watertransferrate);
-							//counter++;
-						}
-						else if (pos == 1) {
-							transportwater(waterheight[a], waterheight[a - length], watertransferrate);
-							//counter++;
-						}
-
-					}
-					else if ((h == gw) && (w > 0) && (w < gw)) {
-
-						combinedheight.push_back((point3d[a].gety() + waterheight[a]) -
-							(point3d[a + 1].gety() + waterheight[a + 1]));
-
-						combinedheight.push_back((point3d[a].gety() + waterheight[a]) -
-							(point3d[a - length].gety() + waterheight[a - length]));
-
-						combinedheight.push_back((point3d[a].gety() + waterheight[a]) -
-							(point3d[a - 1].gety() + waterheight[a - 1]));
-
-						findlowestneighbour(combinedheight, max, pos);
-
-						if (pos == 0) {
-							transportwater(waterheight[a], waterheight[a + 1], watertransferrate);
-							//counter++;
-						}
-						else if (pos == 1) {
-							transportwater(waterheight[a], waterheight[a - length], watertransferrate);
-							//counter++;
-						}
-						else if (pos == 2) {
-							transportwater(waterheight[a], waterheight[a - 1], watertransferrate);
-							//counter++;
-						}
-
-					}
-					else if ((h == gw) && (w == gw)) {
-
-						combinedheight.push_back((point3d[a].gety() + waterheight[a]) -
-													(point3d[a - length].gety() + waterheight[a - length]));
-
-						combinedheight.push_back((point3d[a].gety() + waterheight[a]) -
-													(point3d[a - 1].gety() + waterheight[a - 1]));
-
-						findlowestneighbour(combinedheight, max, pos);
-
-						if (pos == 0) {
-							transportwater(waterheight[a], waterheight[a - length], watertransferrate);
-							//counter++;
-						}
-						else if (pos == 1) {
-							transportwater(waterheight[a], waterheight[a - 1], watertransferrate);
-							//counter++;
-						}
-
+					// Deposit sediment
+					if (sedimentheight[wc] > (waterheight[wc] * sedimentratio)) {
+						double nonsoluablesediment = sedimentheight[wc] - (waterheight[wc] * sedimentratio);
+						point3d[wc] = Point3d(point3d[wc].getx(), point3d[wc].gety() + nonsoluablesediment, point3d[wc].getz());
 					}
 
-					/*combinedheight.clear();
-					max = 0;
-					pos = -1;
-					a++;*/
-					combinedheight.clear();
-					max = 0;
-					pos = -1;
+				}
+				else if ((h == 0) && (w = gw)) {
 
-				} // else statment
+					combinedheight.push_back((point3d[wc].gety() + waterheight[wc]) -
+						(point3d[wc + length].gety() + waterheight[wc + length]));
+
+					combinedheight.push_back((point3d[wc].gety() + waterheight[wc]) -
+						(point3d[wc - 1].gety() + waterheight[wc - 1]));
+
+					findlowestneighbour(combinedheight, max, pos);
+
+					if (pos == 0) {
+						transportwater(waterheight[wc], waterheight[wc + length], watertransferrate, erosionrate, pos, wc, wc + length);
+					}
+					else if (pos == 1) {
+						transportwater(waterheight[wc], waterheight[wc - 1], watertransferrate, erosionrate, pos, wc, wc - 1);
+					}
+
+					// Deposit sediment
+					if (sedimentheight[wc] > (waterheight[wc] * sedimentratio)) {
+						double nonsoluablesediment = sedimentheight[wc] - (waterheight[wc] * sedimentratio);
+						point3d[wc] = Point3d(point3d[wc].getx(), point3d[wc].gety() + nonsoluablesediment, point3d[wc].getz());
+					}
+				}
+				else if ((h > 0) && (h < gw) && (w == 0)) {
+
+					combinedheight.push_back((point3d[wc].gety() + waterheight[wc]) -
+						(point3d[wc + length].gety() + waterheight[wc + length]));
+
+					combinedheight.push_back((point3d[wc].gety() + waterheight[wc]) -
+						(point3d[wc + 1].gety() + waterheight[wc + 1]));
+
+					combinedheight.push_back((point3d[wc].gety() + waterheight[wc]) -
+						(point3d[wc - length].gety() + waterheight[wc - length]));
+
+					findlowestneighbour(combinedheight, max, pos);
+
+					if (pos == 0) {
+						transportwater(waterheight[wc], waterheight[wc + length], watertransferrate, erosionrate, pos, wc, wc + length);
+					}
+					else if (pos == 1) {
+						transportwater(waterheight[wc], waterheight[wc + 1], watertransferrate, erosionrate, pos, wc, wc + 1);
+					}
+					else if (pos == 2) {
+						transportwater(waterheight[wc], waterheight[wc - length], watertransferrate, erosionrate, pos, wc, wc - length);
+					}
+
+					// Deposit sediment
+					if (sedimentheight[wc] > (waterheight[wc] * sedimentratio)) {
+						double nonsoluablesediment = sedimentheight[wc] - (waterheight[wc] * sedimentratio);
+						point3d[wc] = Point3d(point3d[wc].getx(), point3d[wc].gety() + nonsoluablesediment, point3d[wc].getz());
+					}
+				}
+				else if ((h > 0) && (h < gw) && (w < gw)) {
+
+					combinedheight.push_back((point3d[wc].gety() + waterheight[wc]) -
+						(point3d[wc + length].gety() + waterheight[wc + length]));
+
+					combinedheight.push_back((point3d[wc].gety() + waterheight[wc]) -
+						(point3d[wc + 1].gety() + waterheight[wc + 1]));
+
+					combinedheight.push_back((point3d[wc].gety() + waterheight[wc]) -
+						(point3d[wc - length].gety() + waterheight[wc - length]));
+
+					combinedheight.push_back((point3d[wc].gety() + waterheight[wc]) -
+						(point3d[wc - 1].gety() + waterheight[wc - 1]));
+
+					findlowestneighbour(combinedheight, max, pos);
+
+					if (pos == 0) {
+						transportwater(waterheight[wc], waterheight[wc + length], watertransferrate, erosionrate, pos, wc, wc + length);
+					}
+					else if (pos == 1) {
+						transportwater(waterheight[wc], waterheight[wc + 1], watertransferrate, erosionrate, pos, wc, wc + 1);
+					}
+					else if (pos == 2) {
+						transportwater(waterheight[wc], waterheight[wc - length], watertransferrate, erosionrate, pos, wc, wc - length);
+					}
+					else if (pos == 3) {
+						transportwater(waterheight[wc], waterheight[wc - 1], watertransferrate, erosionrate, pos, wc, wc - 1);
+					}
+
+					// Deposit sediment
+					if (sedimentheight[wc] > (waterheight[wc] * sedimentratio)) {
+						double nonsoluablesediment = sedimentheight[wc] - (waterheight[wc] * sedimentratio);
+						point3d[wc] = Point3d(point3d[wc].getx(), point3d[wc].gety() + nonsoluablesediment, point3d[wc].getz());
+					}
+				}
+				else if ((h > 0) && (h < gw) && (w == gw)) {
+
+					combinedheight.push_back((point3d[wc].gety() + waterheight[wc]) -
+						(point3d[wc + length].gety() + waterheight[wc + length]));
+
+					combinedheight.push_back((point3d[wc].gety() + waterheight[wc]) -
+						(point3d[wc - length].gety() + waterheight[wc - length]));
+
+					combinedheight.push_back((point3d[wc].gety() + waterheight[wc]) -
+						(point3d[wc - 1].gety() + waterheight[wc - 1]));
+
+					findlowestneighbour(combinedheight, max, pos);
+
+					if (pos == 0) {
+						transportwater(waterheight[wc], waterheight[wc + length], watertransferrate, erosionrate, pos, wc, wc + length);
+					}
+					else if (pos == 1) {
+						transportwater(waterheight[wc], waterheight[wc - length], watertransferrate, erosionrate, pos, wc, wc - length);
+					}
+					else if (pos == 2) {
+						transportwater(waterheight[wc], waterheight[wc - 1], watertransferrate, erosionrate, pos, wc, wc - 1);
+					}
+
+					// Deposit sediment
+					if (sedimentheight[wc] > (waterheight[wc] * sedimentratio)) {
+						double nonsoluablesediment = sedimentheight[wc] - (waterheight[wc] * sedimentratio);
+						point3d[wc] = Point3d(point3d[wc].getx(), point3d[wc].gety() + nonsoluablesediment, point3d[wc].getz());
+					}
+				}
+				else if ((h == gw) && (w == 0)) {
+
+					combinedheight.push_back((point3d[wc].gety() + waterheight[wc]) -
+						(point3d[wc + 1].gety() + waterheight[wc + 1]));
+
+					combinedheight.push_back((point3d[wc].gety() + waterheight[wc]) -
+						(point3d[wc - length].gety() + waterheight[wc - length]));
+
+					findlowestneighbour(combinedheight, max, pos);
+
+					if (pos == 0) {
+						transportwater(waterheight[wc], waterheight[wc + 1], watertransferrate, erosionrate, pos, wc, wc + 1);
+					}
+					else if (pos == 1) {
+						transportwater(waterheight[wc], waterheight[wc - length], watertransferrate, erosionrate, pos, wc, wc - length);
+					}
+
+					// Deposit sediment
+					if (sedimentheight[wc] > (waterheight[wc] * sedimentratio)) {
+						double nonsoluablesediment = sedimentheight[wc] - (waterheight[wc] * sedimentratio);
+						point3d[wc] = Point3d(point3d[wc].getx(), point3d[wc].gety() + nonsoluablesediment, point3d[wc].getz());
+					}
+				}
+				else if ((h == gw) && (w > 0) && (w < gw)) {
+
+					combinedheight.push_back((point3d[wc].gety() + waterheight[wc]) -
+						(point3d[wc + 1].gety() + waterheight[wc + 1]));
+
+					combinedheight.push_back((point3d[wc].gety() + waterheight[wc]) -
+						(point3d[wc - length].gety() + waterheight[wc - length]));
+
+					combinedheight.push_back((point3d[wc].gety() + waterheight[wc]) -
+						(point3d[wc - 1].gety() + waterheight[wc - 1]));
+
+					findlowestneighbour(combinedheight, max, pos);
+
+					if (pos == 0) {
+						transportwater(waterheight[wc], waterheight[wc + 1], watertransferrate, erosionrate, pos, wc, wc + 1);
+					}
+					else if (pos == 1) {
+						transportwater(waterheight[wc], waterheight[wc - length], watertransferrate, erosionrate, pos, wc, wc - length);
+					}
+					else if (pos == 2) {
+						transportwater(waterheight[wc], waterheight[wc - 1], watertransferrate, erosionrate, pos, wc, wc - 1);
+					}
+
+					// Deposit sediment
+					if (sedimentheight[wc] > (waterheight[wc] * sedimentratio)) {
+						double nonsoluablesediment = sedimentheight[wc] - (waterheight[wc] * sedimentratio);
+						point3d[wc] = Point3d(point3d[wc].getx(), point3d[wc].gety() + nonsoluablesediment, point3d[wc].getz());
+					}
+				}
+				else if ((h == gw) && (w == gw)) {
+
+					combinedheight.push_back((point3d[wc].gety() + waterheight[wc]) -
+						(point3d[wc - length].gety() + waterheight[wc - length]));
+
+					combinedheight.push_back((point3d[wc].gety() + waterheight[wc]) -
+						(point3d[wc - 1].gety() + waterheight[wc - 1]));
+
+					findlowestneighbour(combinedheight, max, pos);
+
+					if (pos == 0) {
+						transportwater(waterheight[wc], waterheight[wc - length], watertransferrate, erosionrate, pos, wc, wc - length);
+					}
+					else if (pos == 1) {
+						transportwater(waterheight[wc], waterheight[wc - 1], watertransferrate, erosionrate, pos, wc, wc - 1);
+					}
+
+					// Deposit sediment
+					if (sedimentheight[wc] > (waterheight[wc] * sedimentratio)) {
+						double nonsoluablesediment = sedimentheight[wc] - (waterheight[wc] * sedimentratio);
+						point3d[wc] = Point3d(point3d[wc].getx(), point3d[wc].gety() + nonsoluablesediment, point3d[wc].getz());
+					}
+				}
+
+				//if (waterheight[wc] < 0.0) { waterheight[wc] = 0.0; }
+				//if (sedimentheight[wc] < 0.0) { sedimentheight[wc] = 0.0; }
 
 				combinedheight.clear();
 				max = 0;
 				pos = -1;
-				a++;
+			} // else statment
 
-			} // for loop w
-		} // for loop h		
+			//waterheight[wc] = waterheight[wc] - evapourationrate;
+			//if (waterheight[wc] < 0.0) { waterheight[wc] = 0.0; }
+
+			combinedheight.clear();
+			max = 0;
+			pos = -1;			
+			wc++;
+		} // for loop w	
+		
+		
+		heightcounter++;
+		if (heightcounter == length) { 
+			heightcounter = 0; 
+			wc = 0;
+		}
+		
 	}
 
 	
@@ -1099,6 +1178,7 @@ public:
 		glBegin(GL_TRIANGLES);
 		for (int i = 0; i < triangle3d.size(); i++) {
 				// v1
+				//glColor3d(0.0, 0.5, 0.0);
 				glNormal3d(point3d[triangle3d[i].getv1()].normal[0].getx(),
 					point3d[triangle3d[i].getv1()].normal[0].gety(),
 					point3d[triangle3d[i].getv1()].normal[0].getz());
@@ -1109,6 +1189,7 @@ public:
 				glTexCoord2f(0.0, 0.0);
 
 				// v2
+				//glColor3d(0.0, 0.5, 0.0);
 				glNormal3d(point3d[triangle3d[i].getv2()].normal[0].getx(),
 					point3d[triangle3d[i].getv2()].normal[0].gety(),
 					point3d[triangle3d[i].getv2()].normal[0].getz());
@@ -1119,6 +1200,7 @@ public:
 				glTexCoord2f(1.0, 0.0);
 
 				// v3
+				//glColor3d(0.0, 0.5, 0.0);
 				glNormal3d(point3d[triangle3d[i].getv3()].normal[0].getx(),
 					point3d[triangle3d[i].getv3()].normal[0].gety(),
 					point3d[triangle3d[i].getv3()].normal[0].getz());
@@ -1142,22 +1224,25 @@ public:
 		// the triangle selected is the referance provided by the referance ary vector.		
 		glBegin(GL_TRIANGLES);
 		for (int i = 0; i < triangle3d.size(); i++) {
-			if ((waterheight[triangle3d[i].getv1()] > 0.0) &&
-				(waterheight[triangle3d[i].getv2()] > 0.0) &&
+			if ((waterheight[triangle3d[i].getv1()] > 0.0) ||
+				(waterheight[triangle3d[i].getv2()] > 0.0) ||
 				(waterheight[triangle3d[i].getv3()] > 0.0)) {
 				// v1
+				//glColor3d(0.3, 0.4, 0.8);
 				glVertex3d(point3d[triangle3d[i].getv1()].getx(),
 					point3d[triangle3d[i].getv1()].gety() + waterheight[triangle3d[i].getv1()],
 					point3d[triangle3d[i].getv1()].getz());
 				glTexCoord2f(0.0, 0.0);
 
 				// v2
+				//glColor3d(0.3, 0.4, 0.8);
 				glVertex3d(point3d[triangle3d[i].getv2()].getx(),
 					point3d[triangle3d[i].getv2()].gety() + waterheight[triangle3d[i].getv2()],
 					point3d[triangle3d[i].getv2()].getz());
 				glTexCoord2f(1.0, 0.0);
 
 				// v3
+				//glColor3d(0.3, 0.4, 0.8);
 				glVertex3d(point3d[triangle3d[i].getv3()].getx(),
 					point3d[triangle3d[i].getv3()].gety() + waterheight[triangle3d[i].getv3()],
 					point3d[triangle3d[i].getv3()].getz());

@@ -7,6 +7,7 @@ bool mousein=false;
 bool polygonmode=false;
 
 CTexture texture_grass;
+CTexture texture_water;
 
 class Settings {
 private:
@@ -63,30 +64,30 @@ Settings worldsettings;
 SpaceCamera spacecamera(30.0,90.0,30.0,-15.0,-135.0);
 //30,90,30
 
-CGrid cgrid1(513); 
+CGrid cgrid1(580);
+//int c = 0;
 
-int gridmap1;
-
-//MapOSM maposm("map.osm");
+int gridmap1_terrain;
+int gridmap1_water;
 
 void init() {
 	glClearColor(0.0,0.0,0.0,0.5);
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
 
-	gluPerspective(45,640.0/480.0,0.1,360000.0);  
+	gluPerspective(45,640.0/480.0,1.0,36000.0);  
 	glMatrixMode(GL_MODELVIEW);
 
 	glEnable(GL_DEPTH_TEST);	
 	glEnable(GL_COLOR_MATERIAL);
 	glEnable(GL_CULL_FACE);
 	glEnable(GL_NORMALIZE);	
-	// glEnable(GL_TEXTURE_2D);
+	//glEnable(GL_TEXTURE_2D);	
 
-    GLfloat mat_specular[]   = {0.1, 0.1, 0.1, 1.0};
-    GLfloat mat_diffuse[]    = {0.5, 0.5, 0.5, 1.0};
-	GLfloat mat_ambient[]    = {0.5, 0.5, 0.5, 1.0};
-	GLfloat mat_shininess[]  = {0.0};	
+    GLfloat mat_specular[]   = {0.3, 0.3, 0.3, 1.0};
+    GLfloat mat_diffuse[]    = {0.3, 0.3, 0.3, 1.0};
+	GLfloat mat_ambient[]    = {0.3, 0.3, 0.3, 1.0};
+	GLfloat mat_shininess[]  = {1.0};	
 
 	GLfloat light_ambient[]  = {0.3, 0.3, 0.3, 1.0};
 	//GLfloat light_ambient[]  = {0.0, 0.0, 0.0, 1.0};
@@ -108,17 +109,16 @@ void init() {
 
 	glShadeModel(GL_SMOOTH);	
 
-	texture_grass.createtexture("grass.bmp");
-	texture_grass.usetexture();
+	//texture_grass.createtexture("grass.bmp");
+	//texture_water.createtexture("water.bmp");
 
 	if (worldsettings.getLighting() == true) {
 		glEnable(GL_LIGHTING);
 		glEnable(GL_LIGHT0);
 	}
-    
-
-	gridmap1 = cgrid1.draw(spacecamera);	
-		
+    	
+	gridmap1_terrain = cgrid1.draw(spacecamera);
+	//gridmap1_water = cgrid1.drawwater(spacecamera);
 
 }
 
@@ -143,13 +143,26 @@ void display(SDL_Window *window)
 	// light position was previously 0, 64, 0
 
 	glLightfv(GL_LIGHT0, GL_POSITION, light_position);
-
 	glCullFace(GL_BACK);
+
+
+	/*cgrid1.calculatewatermovement();
+	c++;
+
+	if (c == 580) {
+		gridmap1_water = cgrid1.drawwater(spacecamera);
+		gridmap1_terrain = cgrid1.draw(spacecamera);
+		c = 0;
+	}*/
+
+	//gridmap1_water = cgrid1.drawwater(spacecamera);
+
 	glTranslated(0.0,0.0,0.0);
-	glPushMatrix();
-		glCallList(gridmap1);	
-		//maposm.draw();	
+	glPushMatrix();		
+		glCallList(gridmap1_terrain);
+		//glCallList(gridmap1_water);				
 	glPopMatrix();
+		
 }
 
 
@@ -161,7 +174,7 @@ int main(int argc, char **argv) {
 	SDL_Window *window = SDL_CreateWindow("SDL2/OpenGL Demo", 
 		SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 
 		640, 480, 
-		SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN 
+		SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN | SDL_WINDOW_FULLSCREEN_DESKTOP
 	);  
 	
 	// | SDL_WINDOW_FULLSCREEN_DESKTOP
@@ -203,8 +216,15 @@ int main(int argc, char **argv) {
 					}
 					if((event.key.keysym.sym==SDLK_m) && (polygonmode==true)) {
 						polygonmode = false;
+						cgrid1.vertexnormals();
 						break;
 					}
+					if(event.key.keysym.sym == SDLK_f) {
+						//cgrid1.calculatewatermovement();
+						//gridmap1_water = cgrid1.drawwater(spacecamera);
+					}
+
+					
 			}
 		}
 		display(window);		
