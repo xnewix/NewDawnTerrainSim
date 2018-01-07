@@ -31,19 +31,21 @@ public:
     //~CGrid();
     std::vector<Vec3>   points;
     std::vector<double> temperature;
-    std::vector<double> water;
+    std::vector<double> waterheight;
     std::vector<double> sin_percentage;
-  
+    std::vector<double> moisture;
+    
     void init() {
         latitude = 45.0;
         double latitudebase_temp = latitude * 0.5;
       
+        int m = 0;
         for(int h = 0; h < length; h++) {
             for(int w = 0; w < length; w++) {
                 points.push_back(Vec3(w, w * h, h));
                 temperature.push_back((latitudebase_temp - (h * 0.0000045045)) - 
                                       (points[points.size()-1].getY() * 0.0098));
-                
+                 
                 // In the Northen hemisphere the latitude moves futher from 0 degrees, 
                 // the temperature should decrease
               
@@ -62,6 +64,9 @@ public:
                           << "  c: " << temperature[points.size()-1] 
                           << std::endl;
                 */
+                moisture.push_back(0);
+                waterheight.push_back(5);
+                m++;
             }
         }
         
@@ -110,19 +115,89 @@ public:
             double regional_temperature = lat_inverse * 0.5;
             //double dailytemperature = testtemperature + (testtemperature * sinvalue);
       
-            std::cout << temperature.size() << std::endl;
+            //std::cout << temperature.size() << std::endl;
                 
             temperature[i] =  base_temperature + (regional_temperature * sin_percentage[dayofyear]); 
-            std::cout << "Temperature:          " << temperature[i] << std::endl;               
-            std::cout << "Regional Temperature: " << regional_temperature << std::endl; 
-            std::cout << "Base Temperature:     " << base_temperature << std::endl; 
+            //std::cout << "Temperature:          " << temperature[i] << std::endl;               
+            //std::cout << "Regional Temperature: " << regional_temperature << std::endl; 
+            //std::cout << "Base Temperature:     " << base_temperature << std::endl; 
         }
         
     }
    
-   void calculatetemperature(int pos) {
-        temperature[pos] -= points[pos].getY() * 0.0098;
-   }
+    void moveMoisture() {
+        // Add Moisture to the air
+        // Remove Moisture from the air
+        // Move Moisture 
+        std::vector<double> tmp_moisture;
+        for(int h = 0; h < length; h++) {            
+              
+            tmp_moisture.push_back(moisture[getIndex(h, length -1)]);             
+            
+          
+            for(int w = 0; w < length -1; w++) {
+                tmp_moisture.push_back(moisture[getIndex(h, w)]);                 
+            }
+            // Move moisture 
+            //tmp_moisture.clear();
+        }
+      
+        for(int i = 0; i < length * length; i++) {
+            
+            //std::cout << tmp_moisture[i] << " : " << moisture[i] << std::endl;
+        }
+        moisture = tmp_moisture;
+        
+    }
+    
+    void evaporation() {
+        
+        for(int i = 0; i < length * length; i++) {
+        
+            // can only evaporate if RH < 100 % 
+            double SVP = 6.11 * (pow(10.0, (7.5 * temperature[i]) / (temperature[i] + 237.3)));
+        
+            // or if there is water present
+      
+            double Tm = temperature[i] + (0.006 * points[i].getY());
+            double TminusTd = (0.0023 * points[i].getY()) + (0.37 * points[i].getY()) + (0.53 * points[i].getY()) - 10.9;    
+            double Alatitude = (90.0 - 25.0) + (points[i].getZ() * 0.0000045045);
+            double vapour = ((((700.0 * Tm) / (100 - Alatitude)) + (15 * TminusTd)) / (80.0 - temperature[i]) / 36.0);
+            double Pmbar  = 0.09806648572 * vapour;
+          
+            if(((vapour / 1000.0) <= waterheight[i]) && (moisture[i] + Pmbar <= SVP)) {
+                moisture[i] = moisture[i] + Pmbar;
+                waterheight[i] = waterheight[i] - (vapour / 1000.0);
+            }
+            //std::cout << temperature[i] << " : " << vapour << " : " << Pmbar << " : " << SVP << " : " << waterheight[i] << " : " << moisture[i] << std::endl;
+      
+            // vapour is in mm need about 220 mm to 20 pmbar = 0.2 meters 6mm a day 
+        }
+        std::cout << temperature[0] << " : " << waterheight[0] << " : " << moisture[0] << std::endl;
+      
+    }
+  
+   
+    int getIndex(int h, int w) {
+      
+        int index = (h * length) + w;
+        return index;
+    }
+    
+    // represents 1 dau of the weather system 
+    void cycle(int d) {
+      updateTemperature(d);
+      for(int i = 0; i < 360.0; i ++) {
+          moveMoisture();
+          evaporation();
+      }
+    }
+    
+    void ycycle() {
+        for(int i = 0; i < 365.0; i++) {
+            cycle(i);
+        }
+    }
    // Temperature should increase / decrease slighty in a cycle like motion. 
    // A seperate Air - Temperature? 
    
@@ -151,16 +226,20 @@ public:
 };
 
 
-CGrid cgrid(4);
+CGrid cgrid(6);
 
 
 int main() {
   
   
   cgrid.init();
-  cgrid.updateTemperature(1);
+  //cgrid.updateTemperature(0);
+  //cgrid.moveMoisture();
+  //cgrid.moveMoisture();
+  //cgrid.evaporation();
   //cgrid.calculatetemperature(0);
   
+  cgrid.cycle(0);
   std::cout << "safsffaf";
   
   
